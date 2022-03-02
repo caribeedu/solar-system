@@ -1,13 +1,15 @@
 import OpenGL.GL as gl
 from PIL import Image
 import numpy
+import os
 
 
 def read(filename):
     """
     Reads an image file and converts to a OpenGL readable format
     """
-    img = Image.open(filename)
+    img = Image.open('{0}\\assets\{1}'.format(
+        os.path.dirname(os.path.abspath(__file__)), filename))
     img_data = numpy.array(list(img.getdata()), numpy.int8)
 
     textID = gl.glGenTextures(1)
