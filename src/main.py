@@ -15,7 +15,7 @@ def main():
     start_display()
     # Allows press and hold of buttons
     pygame.key.set_repeat(1, 10)
-    # Set's initial zoom so we can see globe
+    # Set's initial zoom so we can see
     glTranslatef(0.0, 0.0, -5)
 
     cam_position = {
@@ -40,35 +40,51 @@ def main():
 
 
 def start_display():
-    display = (400, 400)
+    display = (800, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption('Solar System')
     gluPerspective(40, (display[0]/display[1]), 0.1, 50.0)
 
 
+class OrbRotation:
+    def __init__(self, speed):
+        self.current = 0
+        self.speed = speed
+
+
+class OrbPosition:
+    def __init__(self, x, y, speed):
+        self.current_x = x
+        self.current_y = y
+        self.speed = speed
+
+
 class Orb:
-    def __init__(self, rotation, scale, start_position, has_movement, texture_name):
-        self.current_rotation = 0
-        self.rotation = rotation
+    def __init__(self, rotation_speed, start_position, movement_speed, scale, texture_name):
+        self.rotation = OrbRotation(rotation_speed)
+        self.position = OrbPosition(
+            start_position,
+            start_position,
+            movement_speed
+        )
         self.scale = scale
-        self.start_position = start_position
-        self.has_movement = has_movement
         self.texture_id = texture.read(texture_name)
 
 
 class SolarSystem:
     def __init__(self):
         self.orbs = [
-            Orb(2, 1, 0, True, 'sun.jpg'),
-            Orb(2, 1, 10, True, 'mercury.jpg'),
-            Orb(2, 1, 20, True, 'venus.jpg'),
-            Orb(2, 1, 30, True, 'earth.jpg'),
-            Orb(2, 1, 40, True, 'mars.jpg'),
-            Orb(2, 1, 50, True, 'jupiter.jpg'),
-            Orb(2, 1, 60, True, 'saturn.jpg'),
-            Orb(2, 1, 70, True, 'uranus.jpg'),
-            Orb(2, 1, 80, True, 'neptune.jpg'),
-            Orb(2, 1, 90, True, 'pluto.jpg')
+            Orb(2, 0, None, 10, 'sun.jpg'),
+            # The start position of mercury is the arithmetic average of nearest space and longest space of sun
+            Orb(2, 25.79, 2, 0.38, 'mercury.jpg'),
+            Orb(2, 30.8, 2, 0.94, 'venus.jpg'),
+            Orb(2, 35, 2, 1, 'earth.jpg'),
+            Orb(2, 42.8, 2, 0.53, 'mars.jpg'),
+            Orb(2, 52.9, 2, 2.72, 'jupiter.jpg'),
+            Orb(2, 60, 2, 2.28, 'saturn.jpg'),
+            Orb(2, 70, 2, 0.99, 'uranus.jpg'),
+            Orb(2, 75, 2, 0.96, 'neptune.jpg'),
+            Orb(2, 85, 2, 0.18, 'pluto.jpg')
         ]
 
     def draw(self):
@@ -78,13 +94,15 @@ class SolarSystem:
     def create_orb(self, orb):
         glPushMatrix()
 
-        glTranslatef(orb.start_position, orb.start_position, 0)
+        glTranslatef(orb.position.current_x, orb.position.current_y, 0)
 
-        glRotatef(orb.current_rotation, 0, 0, -1)
+        glScalef(orb.scale, orb.scale, orb.scale)
 
-        orb.current_rotation += orb.rotation
-        if (orb.current_rotation > 360):
-            orb.current_rotation -= 360
+        glRotatef(orb.rotation.current, 0, 0, -1)
+
+        orb.rotation.current += orb.rotation.speed
+        if (orb.rotation.current > 360):
+            orb.rotation.current -= 360
 
         quadric = gluNewQuadric()
         gluQuadricTexture(quadric, GL_TRUE)
