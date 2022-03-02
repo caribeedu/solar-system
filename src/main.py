@@ -87,17 +87,17 @@ class Orb:
 class SolarSystem:
     def __init__(self):
         self.orbs = [
-            Orb(0.037, 0, None, 15, 'sun.jpg'),
+            Orb(0.037, 0, None, 10, 'sun.jpg'),
             # The start position of mercury is the arithmetic average of nearest space and longest space of sun
-            Orb(0.017, 40.79, 4.14, 0.38, 'mercury.jpg'),
-            Orb(0.004, 45.8, 1.62, 0.94, 'venus.jpg'),
-            Orb(1, 50, 1, 1, 'earth.jpg'),
-            Orb(0.96, 57.8, 0.53, 0.53, 'mars.jpg'),
-            Orb(2.4, 67.9, 0.084, 2.72, 'jupiter.jpg'),
-            Orb(2.18, 75, 0.033, 2.28, 'saturn.jpg'),
-            Orb(1.41, 85, 0.011, 0.99, 'uranus.jpg'),
-            Orb(1.5, 90, 0.006, 0.96, 'neptune.jpg'),
-            Orb(0.16, 100, 0.004, 0.18, 'pluto.jpg')
+            Orb(0.017, 35, 4.14, 0.38, 'mercury.jpg'),
+            Orb(0.004, 45, 1.62, 0.94, 'venus.jpg'),
+            Orb(1, 55, 1, 1, 'earth.jpg'),
+            Orb(0.96, 65, 0.53, 0.53, 'mars.jpg'),
+            Orb(2.4, 95, 0.084, 2.72, 'jupiter.jpg'),
+            Orb(2.18, 115, 0.033, 2.28, 'saturn.jpg'),
+            Orb(1.41, 145, 0.011, 0.99, 'uranus.jpg'),
+            Orb(1.5, 175, 0.006, 0.96, 'neptune.jpg'),
+            Orb(0.16, 205, 0.004, 0.18, 'pluto.jpg')
         ]
 
     def draw(self):
@@ -134,7 +134,7 @@ class SolarSystem:
         gluQuadricTexture(quadric, GL_TRUE)
         glEnable(GL_TEXTURE_2D)
         glBindTexture(GL_TEXTURE_2D, orb.texture_id)
-        gluSphere(quadric, 1, 50, 50)
+        gluSphere(quadric, 1, 100, 100)
         gluDeleteQuadric(quadric)
         glDisable(GL_TEXTURE_2D)
 
