@@ -83,17 +83,17 @@ class Orb:
 class SolarSystem:
     def __init__(self):
         self.orbs = [
-            Orb(2, 0, None, 10, 'sun.jpg'),
+            Orb(0.037, 0, None, 10, 'sun.jpg'),
             # The start position of mercury is the arithmetic average of nearest space and longest space of sun
-            Orb(2, 25.79, 2, 0.38, 'mercury.jpg'),
-            Orb(2, 30.8, 2, 0.94, 'venus.jpg'),
-            Orb(2, 35, 2, 1, 'earth.jpg'),
-            Orb(2, 42.8, 2, 0.53, 'mars.jpg'),
-            Orb(2, 52.9, 2, 2.72, 'jupiter.jpg'),
-            Orb(2, 60, 2, 2.28, 'saturn.jpg'),
-            Orb(2, 70, 2, 0.99, 'uranus.jpg'),
-            Orb(2, 75, 2, 0.96, 'neptune.jpg'),
-            Orb(2, 85, 2, 0.18, 'pluto.jpg')
+            Orb(0.017, 25.79, 2, 0.38, 'mercury.jpg'),
+            Orb(0.004, 30.8, 2, 0.94, 'venus.jpg'),
+            Orb(1, 35, 2, 1, 'earth.jpg'),
+            Orb(0.96, 42.8, 2, 0.53, 'mars.jpg'),
+            Orb(2.4, 52.9, 2, 2.72, 'jupiter.jpg'),
+            Orb(2.18, 60, 2, 2.28, 'saturn.jpg'),
+            Orb(1.41, 70, 2, 0.99, 'uranus.jpg'),
+            Orb(1.5, 75, 2, 0.96, 'neptune.jpg'),
+            Orb(0.16, 85, 2, 0.18, 'pluto.jpg')
         ]
 
     def draw(self):
