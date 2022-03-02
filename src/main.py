@@ -59,9 +59,16 @@ class Orb:
 class SolarSystem:
     def __init__(self):
         self.orbs = [
-            Orb(2, 1, 0, True, 'world.jpg'),
-            Orb(2, 1, 10, True, 'world.jpg'),
-            Orb(2, 1, 20, True, 'world.jpg')
+            Orb(2, 1, 0, True, 'sun.jpg'),
+            Orb(2, 1, 10, True, 'mercury.jpg'),
+            Orb(2, 1, 20, True, 'venus.jpg'),
+            Orb(2, 1, 30, True, 'earth.jpg'),
+            Orb(2, 1, 40, True, 'mars.jpg'),
+            Orb(2, 1, 50, True, 'jupiter.jpg'),
+            Orb(2, 1, 60, True, 'saturn.jpg'),
+            Orb(2, 1, 70, True, 'uranus.jpg'),
+            Orb(2, 1, 80, True, 'neptune.jpg'),
+            Orb(2, 1, 90, True, 'pluto.jpg')
         ]
 
     def draw(self):
