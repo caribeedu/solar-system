@@ -7,20 +7,18 @@ import file
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.GLUT import *
 
 
 def main():
     pygame.init()
-
-    # Start display with default settings
     start_window()
+
     # Allows press and hold of buttons
     pygame.key.set_repeat(1, 10)
-    # Set's initial zoom so we can see
+    # Set's initial zoom so we can see the sun
     glTranslatef(0.0, 0.0, -100)
 
-    cam_position = {
+    last_mouse_position = {
         "x": 0,
         "y": 0
     }
@@ -28,7 +26,7 @@ def main():
     system = SolarSystem()
 
     while True:
-        cam_position = events.handle(cam_position)
+        last_mouse_position = events.handle(last_mouse_position)
 
         # Creates Sphere and wraps texture
         glEnable(GL_DEPTH_TEST)
@@ -42,6 +40,10 @@ def main():
 
 
 def start_window():
+    """
+    Start window with default settings
+    """
+
     display = (800, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     # Set's window title
@@ -81,10 +83,7 @@ class OrbPosition:
 class Orb:
     def __init__(self, rotation_speed, sun_distance, movement_speed, scale, texture_name):
         self.rotation = OrbRotation(rotation_speed)
-        self.position = OrbPosition(
-            sun_distance,
-            movement_speed
-        )
+        self.position = OrbPosition(sun_distance, movement_speed)
         self.scale = scale
         self.texture_id = texture.read(texture_name)
 
@@ -93,7 +92,6 @@ class SolarSystem:
     def __init__(self):
         self.orbs = [
             Orb(0.037, 0, None, 10, 'sun.jpg'),
-            # The start position of mercury is the arithmetic average of nearest space and longest space of sun
             Orb(0.017, 35, 4.14, 0.38, 'mercury.jpg'),
             Orb(0.004, 45, 1.62, 0.94, 'venus.jpg'),
             Orb(1, 55, 1, 1, 'earth.jpg'),
@@ -105,10 +103,15 @@ class SolarSystem:
             Orb(0.16, 205, 0.004, 0.7, 'pluto.jpg')  # I know, much bigger than should be
         ]
 
+        # Creates "static functions" (instruction lists) for each orb's line
         for index, orb in enumerate(self.orbs):
             self.create_orb_line_list(index, orb)
 
     def create_orb_line_list(self, index, orb):
+        """
+        Creates a "static function" (actually a list of instructions) who is compiled (by performance reasons),
+        for orb's translational movement line drawing
+        """
         glNewList(index + 1, GL_COMPILE)
         glColor3f(0.1, 0.1, 0.2)
         glBegin(GL_POINTS)
@@ -125,36 +128,51 @@ class SolarSystem:
         glEndList()
 
     def draw_orbs(self):
+        """
+        (Re)draws each orb on system and calls the "function" of translational movement line drawing
+        """
         for index, orb in enumerate(self.orbs):
             self.create_orb(orb)
             glCallList(index + 1)
 
     def create_orb(self, orb):
+        """
+        Creates an sphere with texture and the desired modifications
+        """
+
+        # Create new stack of modifications for the quadric (sphere) that will be created
         glPushMatrix()
 
         if orb.position.speed is not None:
+            # Get's the radian by desired new angle position
             radians = math.radians(orb.position.angle)
 
+            # Get's the new position using angle and sine/cosine
             orb.position.current_x = math.cos(radians) * orb.position.radius
             orb.position.current_y = math.sin(radians) * orb.position.radius
 
-            if orb.position.angle >= 360:
+            if orb.position.angle >= 360:  # If the tranlational movement is completed, restarts angle to zero
                 orb.position.angle = 0
-            else:
+            else:  # Increase angle size for the next iteration using the desired movement speed
                 orb.position.angle += orb.position.speed
 
             glTranslatef(orb.position.current_x, orb.position.current_y, 0)
-        else:
-            glTranslatef(0, 0, 0)  # Sun
+        else:  # Sun
+            glTranslatef(0, 0, 0)
 
+        # Scales the orb for desired size
         glScalef(orb.scale, orb.scale, orb.scale)
 
+        # Applies the rotation on own axis
         glRotatef(orb.rotation.current, 0, 0, -1)
 
+        # Increases the rotation for the next iteration using the desired rotation speed
         orb.rotation.current += orb.rotation.speed
-        if (orb.rotation.current > 360):
-            orb.rotation.current -= 360
+        # If rotation on own axis is completed, restarts rotation position to zero
+        if orb.rotation.current >= 360:
+            orb.rotation.current = 0
 
+        # Creates the sphere object and applies the texture
         quadric = gluNewQuadric()
         gluQuadricTexture(quadric, GL_TRUE)
         glEnable(GL_TEXTURE_2D)
@@ -163,6 +181,7 @@ class SolarSystem:
         gluDeleteQuadric(quadric)
         glDisable(GL_TEXTURE_2D)
 
+        # Drops the current modification stack after applied for the next orb creation
         glPopMatrix()
 
 

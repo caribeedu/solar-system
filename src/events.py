@@ -4,6 +4,10 @@ import OpenGL.GL as gl
 
 
 def handle(last_pos):
+    """
+    Handles pygame events for camera move and zoom using arrow keys and mouse clicks
+    """
+
     # Get user activities, called events
     for event in pygame.event.get():
         # Exit cleanly if user quits window
@@ -45,10 +49,10 @@ def handle(last_pos):
                 temp[0] = modelView[0]*dy + modelView[1]*dx
                 temp[1] = modelView[4]*dy + modelView[5]*dx
                 temp[2] = modelView[8]*dy + modelView[9]*dx
-                norm_xy = math.sqrt(temp[0]*temp[0] + temp[1]
-                                    * temp[1] + temp[2]*temp[2])
-                gl.glRotatef(math.sqrt(dx*dx+dy*dy),
-                             temp[0]/norm_xy, temp[1]/norm_xy, temp[2]/norm_xy)
+                norm_xy = math.sqrt(temp[0]*temp[0] + temp[1] * temp[1] + temp[2]*temp[2])
+
+                if norm_xy != 0:
+                    gl.glRotatef(math.sqrt(dx*dx+dy*dy), temp[0] / norm_xy, temp[1] / norm_xy, temp[2] / norm_xy)
 
             last_pos["x"] = x
             last_pos["y"] = y
