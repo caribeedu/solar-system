@@ -45,7 +45,6 @@ def start_window():
     """
     Start window with default settings
     """
-
     display = (800, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     # Set's window title
@@ -141,7 +140,6 @@ class SolarSystem:
         """
         Creates an sphere with texture and the desired modifications
         """
-
         # Create new stack of modifications for the quadric (sphere) that will be created
         glPushMatrix()
 

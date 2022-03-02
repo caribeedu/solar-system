@@ -7,7 +7,6 @@ def handle(last_pos):
     """
     Handles pygame events for camera move and zoom using arrow keys and mouse clicks
     """
-
     # Get user activities, called events
     for event in pygame.event.get():
         # Exit cleanly if user quits window
