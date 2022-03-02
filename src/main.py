@@ -1,4 +1,5 @@
 import pygame
+import math
 import events
 import texture
 
@@ -62,18 +63,21 @@ class OrbRotation:
 
 
 class OrbPosition:
-    def __init__(self, x, y, speed):
-        self.current_x = x
-        self.current_y = y
+    def __init__(self, sun_distance, speed):
+        self.radius = sun_distance
+        self.angle = 0
+
+        self.current_x = 0
+        self.current_y = 0
+
         self.speed = speed
 
 
 class Orb:
-    def __init__(self, rotation_speed, start_position, movement_speed, scale, texture_name):
+    def __init__(self, rotation_speed, sun_distance, movement_speed, scale, texture_name):
         self.rotation = OrbRotation(rotation_speed)
         self.position = OrbPosition(
-            start_position,
-            start_position,
+            sun_distance,
             movement_speed
         )
         self.scale = scale
@@ -83,17 +87,17 @@ class Orb:
 class SolarSystem:
     def __init__(self):
         self.orbs = [
-            Orb(0.037, 0, None, 10, 'sun.jpg'),
+            Orb(0.037, 0, None, 15, 'sun.jpg'),
             # The start position of mercury is the arithmetic average of nearest space and longest space of sun
-            Orb(0.017, 25.79, 2, 0.38, 'mercury.jpg'),
-            Orb(0.004, 30.8, 2, 0.94, 'venus.jpg'),
-            Orb(1, 35, 2, 1, 'earth.jpg'),
-            Orb(0.96, 42.8, 2, 0.53, 'mars.jpg'),
-            Orb(2.4, 52.9, 2, 2.72, 'jupiter.jpg'),
-            Orb(2.18, 60, 2, 2.28, 'saturn.jpg'),
-            Orb(1.41, 70, 2, 0.99, 'uranus.jpg'),
-            Orb(1.5, 75, 2, 0.96, 'neptune.jpg'),
-            Orb(0.16, 85, 2, 0.18, 'pluto.jpg')
+            Orb(0.017, 40.79, 4.14, 0.38, 'mercury.jpg'),
+            Orb(0.004, 45.8, 1.62, 0.94, 'venus.jpg'),
+            Orb(1, 50, 1, 1, 'earth.jpg'),
+            Orb(0.96, 57.8, 0.53, 0.53, 'mars.jpg'),
+            Orb(2.4, 67.9, 0.084, 2.72, 'jupiter.jpg'),
+            Orb(2.18, 75, 0.033, 2.28, 'saturn.jpg'),
+            Orb(1.41, 85, 0.011, 0.99, 'uranus.jpg'),
+            Orb(1.5, 90, 0.006, 0.96, 'neptune.jpg'),
+            Orb(0.16, 100, 0.004, 0.18, 'pluto.jpg')
         ]
 
     def draw(self):
@@ -103,7 +107,20 @@ class SolarSystem:
     def create_orb(self, orb):
         glPushMatrix()
 
-        glTranslatef(orb.position.current_x, orb.position.current_y, 0)
+        if orb.position.speed is not None:
+            radians = math.radians(orb.position.angle)
+
+            orb.position.current_x = math.cos(radians) * orb.position.radius
+            orb.position.current_y = math.sin(radians) * orb.position.radius
+
+            if orb.position.angle >= 360:
+                orb.position.angle = 0
+            else:
+                orb.position.angle += orb.position.speed
+
+            glTranslatef(orb.position.current_x, orb.position.current_y, 0)
+        else:
+            glTranslatef(0, 0, 0)  # Sun
 
         glScalef(orb.scale, orb.scale, orb.scale)
 
