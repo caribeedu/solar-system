@@ -36,7 +36,9 @@ def main():
 
         # Displays pygame window
         pygame.display.flip()
-        pygame.time.wait(10)
+        # Awaits this amount of time for render approximately 60 frames per second (1 second / 60 frames = 1 frame for each 0.016 seconds)
+        # Reaching at most cases least 30 fps
+        pygame.time.delay(16)
 
 
 def start_window():
