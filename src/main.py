@@ -34,7 +34,7 @@ def main():
         glEnable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        system.draw()
+        system.draw_orbs()
 
         # Displays pygame window
         pygame.display.flip()
@@ -51,8 +51,8 @@ def start_window():
     pygame.display.set_icon(pygame_icon)
 
     # The distance variables from the viewer to clipping plane
-    NEAR_RENDERING_DISTANCE = 5
-    FAR_RENDERING_DISTANCE = 350
+    NEAR_RENDERING_DISTANCE = 20
+    FAR_RENDERING_DISTANCE = 400
     gluPerspective(
         40,
         (display[0]/display[1]),
@@ -102,12 +102,32 @@ class SolarSystem:
             Orb(2.18, 115, 0.033, 2.28, 'saturn.jpg'),
             Orb(1.41, 145, 0.011, 0.99, 'uranus.jpg'),
             Orb(1.5, 175, 0.006, 0.96, 'neptune.jpg'),
-            Orb(0.16, 205, 0.004, 0.18, 'pluto.jpg')
+            Orb(0.16, 205, 0.004, 0.7, 'pluto.jpg')  # I know, much bigger than should be
         ]
 
-    def draw(self):
-        for orb in self.orbs:
+        for index, orb in enumerate(self.orbs):
+            self.create_orb_line_list(index, orb)
+
+    def create_orb_line_list(self, index, orb):
+        glNewList(index + 1, GL_COMPILE)
+        glColor3f(0.1, 0.1, 0.2)
+        glBegin(GL_POINTS)
+        angle = 0
+
+        while angle <= 360:
+            angle += 0.01
+            radians = math.radians(angle)
+            x = orb.position.radius * math.cos(radians)
+            y = orb.position.radius * math.sin(radians)
+            glVertex3f(x, y, 0.0)
+
+        glEnd()
+        glEndList()
+
+    def draw_orbs(self):
+        for index, orb in enumerate(self.orbs):
             self.create_orb(orb)
+            glCallList(index + 1)
 
     def create_orb(self, orb):
         glPushMatrix()
