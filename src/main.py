@@ -2,6 +2,7 @@ import pygame
 import math
 import events
 import texture
+import file
 
 from pygame.locals import *
 from OpenGL.GL import *
@@ -13,7 +14,7 @@ def main():
     pygame.init()
 
     # Start display with default settings
-    start_display()
+    start_window()
     # Allows press and hold of buttons
     pygame.key.set_repeat(1, 10)
     # Set's initial zoom so we can see
@@ -40,10 +41,14 @@ def main():
         pygame.time.wait(10)
 
 
-def start_display():
+def start_window():
     display = (800, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    # Set's window title
     pygame.display.set_caption('Solar System')
+    # Set's window icon
+    pygame_icon = pygame.image.load(file.resolve('icon.ico'))
+    pygame.display.set_icon(pygame_icon)
 
     # The distance variables from the viewer to clipping plane
     NEAR_RENDERING_DISTANCE = 5
