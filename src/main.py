@@ -16,7 +16,7 @@ def main():
     # Allows press and hold of buttons
     pygame.key.set_repeat(1, 10)
     # Set's initial zoom so we can see
-    glTranslatef(0.0, 0.0, -5)
+    glTranslatef(0.0, 0.0, -100)
 
     cam_position = {
         "x": 0,
@@ -43,7 +43,16 @@ def start_display():
     display = (800, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption('Solar System')
-    gluPerspective(40, (display[0]/display[1]), 0.1, 50.0)
+
+    # The distance variables from the viewer to clipping plane
+    NEAR_RENDERING_DISTANCE = 5
+    FAR_RENDERING_DISTANCE = 350
+    gluPerspective(
+        40,
+        (display[0]/display[1]),
+        NEAR_RENDERING_DISTANCE,
+        FAR_RENDERING_DISTANCE
+    )
 
 
 class OrbRotation:
