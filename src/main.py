@@ -15,15 +15,11 @@ def main():
 
     # Allows press and hold of buttons
     pygame.key.set_repeat(1, 10)
-    # Set's initial zoom so we can see the sun
-    glTranslatef(0.0, 0.0, -100)
 
     last_mouse_position = {
         "x": 0,
         "y": 0
     }
-
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
 
     system = SolarSystem()
 
@@ -34,7 +30,9 @@ def main():
         glEnable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        system.draw_sun()
         system.draw_orbs()
+        system.draw_lines()
 
         # Displays pygame window
         pygame.display.flip()
@@ -82,19 +80,94 @@ class OrbPosition:
 
         self.speed = speed
 
+    def update(self):
+        if self.radius is None:
+            return
+
+        # Get's the radian by desired new angle position
+        radians = math.radians(self.angle)
+
+        # Set's the new position using angle and sine/cosine
+        self.current_x = math.cos(radians) * self.radius
+        self.current_y = math.sin(radians) * self.radius
+
 
 class Orb:
     def __init__(self, rotation_speed, sun_distance, movement_speed, scale, texture_name):
         self.rotation = OrbRotation(rotation_speed)
         self.position = OrbPosition(sun_distance, movement_speed)
+
         self.scale = scale
+
         self.texture_id = texture.read(texture_name)
+
+    def create_line(self, index):
+        """
+        Creates a "static function" (actually a list of instructions) who is compiled (by performance reasons),
+        for orb's translational movement line drawing
+        """
+        glNewList(index + 1, GL_COMPILE)
+        glDisable(GL_LIGHTING)
+        glColor3f(0.1, 0.1, 0.2)
+        glBegin(GL_POINTS)
+
+        angle = 0
+
+        while angle <= 360:
+            angle += 0.01
+            radians = math.radians(angle)
+            x = self.position.radius * math.cos(radians)
+            y = self.position.radius * math.sin(radians)
+            glVertex3f(x, y, 0.0)
+
+        glEnd()
+        glEnable(GL_LIGHTING)
+        glEndList()
+
+    def draw_line(self, index):
+        """
+        Calls the "function" of translational movement line drawing
+        """
+        glCallList(index + 1)
+
+    def draw(self):
+        """
+        Creates an sphere with texture and the desired modifications
+        """
+        # Scales the orb for desired size
+        glScalef(self.scale, self.scale, self.scale)
+
+        # Applies the rotation on own axis
+        glRotatef(self.rotation.current, 0, 0, -1)
+
+        # Increases the rotation for the next iteration using the desired rotation speed
+        self.rotation.current += self.rotation.speed
+        # If rotation on own axis is completed, restarts rotation position to zero
+        if self.rotation.current >= 360:
+            self.rotation.current = 0
+
+        # Creates the sphere object and applies the texture
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id)
+
+        quadric = gluNewQuadric()
+        gluQuadricTexture(quadric, GL_TRUE)
+        gluSphere(quadric, 1, 360, 180)
+        gluDeleteQuadric(quadric)
+
+        glDisable(GL_TEXTURE_2D)
 
 
 class SolarSystem:
     def __init__(self):
+        # Set's initial zoom so we can see the sun
+        glTranslatef(0.0, 0.0, -100)
+        # Set's the ambient light
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
+        glEnable(GL_LIGHT0)
+
+        self.sun = Orb(0.037, None, None, 10, 'sun.jpg')
         self.orbs = [
-            Orb(0.037, 0, None, 10, 'sun.jpg'),
             Orb(0.017, 35, 4.14, 0.38, 'mercury.jpg'),
             Orb(0.004, 45, 1.62, 0.94, 'venus.jpg'),
             Orb(1, 55, 1, 1, 'earth.jpg'),
@@ -108,52 +181,49 @@ class SolarSystem:
 
         # Creates "static functions" (instruction lists) for each orb's line
         for index, orb in enumerate(self.orbs):
-            self.create_orb_line_list(index, orb)
+            orb.create_line(index)
 
-    def create_orb_line_list(self, index, orb):
+    def draw_sun(self):
         """
-        Creates a "static function" (actually a list of instructions) who is compiled (by performance reasons),
-        for orb's translational movement line drawing
+        (Re)draws the sun with updated rotation and updates light
         """
-        glNewList(index + 1, GL_COMPILE)
+        glPushMatrix()  # Create new stack of modifications for the quadric (sphere) that will be created
+
+        glTranslatef(0, 0, 0)  # Keeps the sun position at center of scene
+
+        # Sets light emission
+        glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 1])
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
+        glLightfv(GL_LIGHT0, GL_SPECULAR, [1, 1, 1, 1])
+        glLightfv(GL_LIGHT0, GL_POSITION, [0, 0, 0, 1])
+        glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, [0.0, 0.0, 1.0])
+        glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0.0)
+        glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 180.0)
+        glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0)
+        glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0)
+        glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0)
+
+        # Disables light for while to draw sphere, otherwise the sphere will be black (the light is inside)
         glDisable(GL_LIGHTING)
-        glColor3f(0.1, 0.1, 0.2)
-        glBegin(GL_POINTS)
-        angle = 0
 
-        while angle <= 360:
-            angle += 0.01
-            radians = math.radians(angle)
-            x = orb.position.radius * math.cos(radians)
-            y = orb.position.radius * math.sin(radians)
-            glVertex3f(x, y, 0.0)
+        # Sets texture environment to DECAL, if MODULE the texture don't "receive" light and will be darkened
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
-        glEnd()
+        self.sun.draw()
+
+        glPopMatrix()  # Drops the current modification stack after applied for the next orb creation
+
+        # Reenables light after sphere drawing
         glEnable(GL_LIGHTING)
-        glEndList()
 
     def draw_orbs(self):
         """
-        (Re)draws each orb on system and calls the "function" of translational movement line drawing
+        (Re)draws each orb on system with updated rotation and position
         """
-        for index, orb in enumerate(self.orbs):
-            glCallList(index + 1)
-            self.create_orb(orb)
+        for orb in self.orbs:
+            glPushMatrix()  # Create new stack of modifications for the quadric (sphere) that will be created
 
-    def create_orb(self, orb):
-        """
-        Creates an sphere with texture and the desired modifications
-        """
-        # Create new stack of modifications for the quadric (sphere) that will be created
-        glPushMatrix()
-
-        if orb.position.speed is not None:
-            # Get's the radian by desired new angle position
-            radians = math.radians(orb.position.angle)
-
-            # Get's the new position using angle and sine/cosine
-            orb.position.current_x = math.cos(radians) * orb.position.radius
-            orb.position.current_y = math.sin(radians) * orb.position.radius
+            orb.position.update()
 
             if orb.position.angle >= 360:  # If the tranlational movement is completed, restarts angle to zero
                 orb.position.angle = 0
@@ -161,65 +231,27 @@ class SolarSystem:
                 orb.position.angle += orb.position.speed
 
             glTranslatef(orb.position.current_x, orb.position.current_y, 0)
-        else:  # Sun
-            glTranslatef(0, 0, 0)
 
-        # Scales the orb for desired size
-        glScalef(orb.scale, orb.scale, orb.scale)
-
-        # Applies the rotation on own axis
-        glRotatef(orb.rotation.current, 0, 0, -1)
-
-        # Increases the rotation for the next iteration using the desired rotation speed
-        orb.rotation.current += orb.rotation.speed
-        # If rotation on own axis is completed, restarts rotation position to zero
-        if orb.rotation.current >= 360:
-            orb.rotation.current = 0
-
-        if orb.position.speed is None:
-            glEnable(GL_LIGHT0)
-            glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 1])
-            glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
-            glLightfv(GL_LIGHT0, GL_SPECULAR, [1, 1, 1, 1])
-            glLightfv(GL_LIGHT0, GL_POSITION, [0, 0, 0, 1])
-            glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, [0.0, 0.0, 1.0])
-            glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0.0)
-            glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 180.0)
-            glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0)
-            glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0)
-            glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0)
-
-            glDisable(GL_LIGHTING)
-        else:
+            # Sets light reflection
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, [1, 1, 1, 1])
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, [1, 1, 1, 1])
             glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [0, 0, 0, 1])
             glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100)
 
-        # Creates the sphere object and applies the texture
-
-        glEnable(GL_TEXTURE_2D)
-
-        if orb.position.speed is None:
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
-        else:
+            # Sets texture environment to MODULATE (default value), in this way texture will be computed with light correctly
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
-        glBindTexture(GL_TEXTURE_2D, orb.texture_id)
+            orb.draw()
 
-        quadric = gluNewQuadric()
-        gluQuadricTexture(quadric, GL_TRUE)
-        gluSphere(quadric, 1, 360, 180)
-        gluDeleteQuadric(quadric)
+            glPopMatrix()  # Drops the current modification stack after applied for the next orb creation
 
-        glDisable(GL_TEXTURE_2D)
-
-        # Drops the current modification stack after applied for the next orb creation
-        glPopMatrix()
-
-        if orb.position.speed is None:
-            glEnable(GL_LIGHTING)
+    def draw_lines(self):
+        """
+        (Re)draws each orb's line on system
+        """
+        for index, orb in enumerate(self.orbs):
+            orb.draw_line(index)
 
 
 if __name__ == "__main__":
