@@ -23,6 +23,8 @@ def main():
         "y": 0
     }
 
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
+
     system = SolarSystem()
 
     while True:
@@ -114,6 +116,7 @@ class SolarSystem:
         for orb's translational movement line drawing
         """
         glNewList(index + 1, GL_COMPILE)
+        glDisable(GL_LIGHTING)
         glColor3f(0.1, 0.1, 0.2)
         glBegin(GL_POINTS)
         angle = 0
@@ -126,6 +129,7 @@ class SolarSystem:
             glVertex3f(x, y, 0.0)
 
         glEnd()
+        glEnable(GL_LIGHTING)
         glEndList()
 
     def draw_orbs(self):
@@ -133,8 +137,8 @@ class SolarSystem:
         (Re)draws each orb on system and calls the "function" of translational movement line drawing
         """
         for index, orb in enumerate(self.orbs):
-            self.create_orb(orb)
             glCallList(index + 1)
+            self.create_orb(orb)
 
     def create_orb(self, orb):
         """
@@ -172,17 +176,50 @@ class SolarSystem:
         if orb.rotation.current >= 360:
             orb.rotation.current = 0
 
+        if orb.position.speed is None:
+            glEnable(GL_LIGHT0)
+            glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 1])
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
+            glLightfv(GL_LIGHT0, GL_SPECULAR, [1, 1, 1, 1])
+            glLightfv(GL_LIGHT0, GL_POSITION, [0, 0, 0, 1])
+            glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, [0.0, 0.0, 1.0])
+            glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0.0)
+            glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 180.0)
+            glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0)
+            glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0)
+            glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0)
+
+            glDisable(GL_LIGHTING)
+        else:
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, [1, 1, 1, 1])
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, [1, 1, 1, 1])
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [0, 0, 0, 1])
+            glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100)
+
         # Creates the sphere object and applies the texture
+
+        glEnable(GL_TEXTURE_2D)
+
+        if orb.position.speed is None:
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+        else:
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+
+        glBindTexture(GL_TEXTURE_2D, orb.texture_id)
+
         quadric = gluNewQuadric()
         gluQuadricTexture(quadric, GL_TRUE)
-        glEnable(GL_TEXTURE_2D)
-        glBindTexture(GL_TEXTURE_2D, orb.texture_id)
-        gluSphere(quadric, 1, 100, 100)
+        gluSphere(quadric, 1, 360, 180)
         gluDeleteQuadric(quadric)
+
         glDisable(GL_TEXTURE_2D)
 
         # Drops the current modification stack after applied for the next orb creation
         glPopMatrix()
+
+        if orb.position.speed is None:
+            glEnable(GL_LIGHTING)
 
 
 if __name__ == "__main__":
