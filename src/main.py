@@ -45,7 +45,7 @@ def start_window():
     """
     Start window with default settings
     """
-    display = (800, 800)
+    display = (1200, 800)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     # Set's window title
     pygame.display.set_caption('Solar System')
@@ -162,10 +162,10 @@ class SolarSystem:
     def __init__(self):
         # Set's initial zoom so we can see the sun
         glTranslatef(0.0, 0.0, -100)
-        # Set's the ambient light
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
-        glEnable(GL_LIGHT0)
 
+        self.start_light()
+
+        # Starts orbs on system
         self.sun = Orb(0.037, None, None, 10, 'sun.jpg')
         self.orbs = [
             Orb(0.017, 35, 4.14, 0.38, 'mercury.jpg'),
@@ -183,15 +183,14 @@ class SolarSystem:
         for index, orb in enumerate(self.orbs):
             orb.create_line(index)
 
-    def draw_sun(self):
+    def start_light(self):
         """
-        (Re)draws the sun with updated rotation and updates light
+        Starts ambient and sun light
         """
-        glPushMatrix()  # Create new stack of modifications for the quadric (sphere) that will be created
-
-        glTranslatef(0, 0, 0)  # Keeps the sun position at center of scene
-
-        # Sets light emission
+        # Set's the ambient light
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [0.2, 0.2, 0.2, 1.0])
+        # Set's sun light
+        glEnable(GL_LIGHT0)
         glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 1])
         glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
         glLightfv(GL_LIGHT0, GL_SPECULAR, [1, 1, 1, 1])
@@ -202,6 +201,14 @@ class SolarSystem:
         glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0)
         glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0)
         glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0)
+
+    def draw_sun(self):
+        """
+        (Re)draws the sun with updated rotation and updates light
+        """
+        glPushMatrix()  # Create new stack of modifications for the quadric (sphere) that will be created
+
+        glTranslatef(0, 0, 0)  # Keeps the sun position at center of scene
 
         # Disables light for while to draw sphere, otherwise the sphere will be black (the light is inside)
         glDisable(GL_LIGHTING)
